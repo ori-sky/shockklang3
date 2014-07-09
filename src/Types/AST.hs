@@ -1,3 +1,5 @@
 module Types.AST where
 
-data AST = AST
+data AST = Function Integer AST
+         | Call AST [AST]
+         | Literal Integer
