@@ -5,6 +5,7 @@ import Types.Token
 
 isOperatorChar :: Char -> Bool
 isOperatorChar '+' = True
+isOperatorChar '*' = True
 isOperatorChar _ = False
 
 tokenize :: String -> [Token]
@@ -24,7 +25,7 @@ tokenize s@(x:_) = if isAlphaNum x
         _ -> Identifier ident : tokenize identxs
     else if isOperatorChar x
         then Operator op : tokenize opxs
-        else error $ "syntax error: unexpected token `" ++ x : "`"
+        else error $ "unexpected token `" ++ x : "`"
   where
     (ident, identxs) = span isAlphaNum s
     (op, opxs) = span isOperatorChar s
