@@ -11,6 +11,8 @@ isOperatorChar _ = False
 tokenize :: String -> [Token]
 tokenize [] = []
 tokenize ('=':xs) = Equals : tokenize xs
+tokenize ('(':xs) = BracketOpen : tokenize xs
+tokenize (')':xs) = BracketClose : tokenize xs
 tokenize ('[':xs) = ArgsBegin : tokenize xs
 tokenize (']':xs) = ArgsEnd : tokenize xs
 tokenize (' ':xs) = tokenize xs
