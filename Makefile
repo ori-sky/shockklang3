@@ -1,4 +1,4 @@
-OUT=shk2
+OUT=shk3
 FLAGS=-W -O2
 CFLAGS=
 
