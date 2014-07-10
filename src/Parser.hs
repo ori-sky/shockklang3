@@ -8,23 +8,63 @@ import qualified Types.Token as T
 import Types.AST
 import Types.Decl
 
-parsePrimary :: ExceptT String (State [Token]) AST
-parsePrimary = fail "not implemented"
+type TokenState = State [Token]
 
-parseExpr' :: Integer -> AST -> ExceptT String (State [Token]) AST
-parseExpr' minPrec lhs = fail "not implemented"
+parsePrimary :: ExceptT String TokenState AST
+parsePrimary = do
+    ts <- lift get
+    case ts of
+        T.Identifier ident : _ -> fail "parsePrimary not implemented"
+        T.Literal lit : _ -> return (Literal lit)
+        T.BracketOpen : _ -> do
+            lift (modify tail)
+            parseExpr
+        _ -> fail "expected primary"
 
-parseExpression :: ExceptT String (State [Token]) AST
-parseExpression = parsePrimary >>= parseExpr' 0
+parseOperand :: ExceptT String TokenState AST
+parseOperand = do
+    ast <- parsePrimary
+    return ast
 
-parseDeclaration :: ExceptT String (State [Token]) Decl
+{-
+  where (operand, xs) = span f ts
+        f (T.Operator _) = True
+        f _ = False
+-}
+
+parseExpr' :: Ord a => a -> AST -> ExceptT String TokenState AST
+parseExpr' minPrec lhs = do
+    ts <- lift get
+    case ts of
+        [] -> return lhs
+        _ -> fail (show ts)
+        --_  -> fail "parseExpr' not implemented"
+--    op <- lift $ gets head
+--    rhs <- parseOperand
+
+parseExpr :: ExceptT String TokenState AST
+parseExpr = do
+    ts <- lift get
+    case ts of
+        [] -> fail "expected expression"
+        _ -> parseOperand >>= parseExpr' 0
+
+--parseExpression :: ExceptT String TokenState AST
+--parseExpression = fail $ show (get >>= takeWhile 
+--parseExpression = parsePrimary >>= parseExpr' 0
+--parseExpression = do
+--    get >>= span f
+
+{-
+parseDeclaration :: ExceptT String TokenState Decl
 parseDeclaration = do
     ts <- lift get
     case ts of
         T.Identifier ident : T.Equals : xs -> do
             lift $ modify (drop 2)
-            parseExpression >>= return . (Decl ident)
+            parseExpr >>= return . (Decl ident)
         _ -> fail "expected top-level declaration"
+-}
 
-parse :: [Token] -> AST
-parse = error "not implemented"
+parse :: [Token] -> Either String AST
+parse ts = fst $ runState (runExceptT parseExpr) ts
